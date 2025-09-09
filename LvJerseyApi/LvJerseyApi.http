@@ -1,0 +1,6 @@
+@LvJerseyApi_HostAddress = http://localhost:5129
+
+GET {{LvJerseyApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

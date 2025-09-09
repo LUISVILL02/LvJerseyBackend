@@ -1,0 +1,12 @@
+﻿services:
+  authentication:
+    image: authentication
+    build:
+      context: .
+      dockerfile: Authentication/Dockerfile
+
+  users:
+    image: users
+    build:
+      context: .
+      dockerfile: Users/Dockerfile
