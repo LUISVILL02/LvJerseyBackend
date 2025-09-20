@@ -26,9 +26,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(e => e.Password).HasColumnType("character varying").HasColumnName("password");
         builder.Property(e => e.PhoneNumber).HasColumnType("character varying").HasColumnName("phone_number");
         builder.Property(e => e.PostalCode).HasColumnName("postal_code");
+        builder.Property(e => e.RefreshToken).HasColumnType("character varying").HasColumnName("refresh_token");
+        builder.Property(e => e.RefreshTokenExpiryTime).HasColumnType("timestamp with timezone").HasColumnName("refresh_token_expiry_time");
         builder.Property(e => e.State).HasColumnType("character varying").HasColumnName("state");
 
-        builder.HasOne(d => d.IdRolNavigation)
+        builder.HasOne(d => d.Role)
             .WithMany(p => p.Users)
             .HasForeignKey(d => d.IdRol)
             .OnDelete(DeleteBehavior.ClientSetNull)
