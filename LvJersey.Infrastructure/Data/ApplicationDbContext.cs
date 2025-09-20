@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Shared.Infrastructure.Data;
+namespace LvJersey.Infrastructure.Data;
 
 public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
 {
@@ -8,8 +8,7 @@ public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
     {
         // Importar configuraciones de cada módulo
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(Users.Infrastructure.AssemblyMarker).Assembly);
         base.OnModelCreating(modelBuilder);
-        //modelBuilder.ApplyConfigurationsFromAssembly(typeof(Usuarios.Infrastructure.AssemblyMarker).Assembly);
-        //modelBuilder.ApplyConfigurationsFromAssembly(typeof(Pedidos.Infrastructure.AssemblyMarker).Assembly);
     }
 };
