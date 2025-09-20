@@ -2,6 +2,6 @@
 
 public interface ISender
 {
-    Task SendAsync<TCommand>(TCommand command);
-    Task<TResult> SendAsync<TQuery, TResult>(TQuery query);
+    Task<TResult> SendCommandAsync<TCommand, TResult>(TCommand command);
+    Task<TResult> SendQueryAsync<TQuery, TResult>(TQuery query);
 }

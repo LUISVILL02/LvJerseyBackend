@@ -26,8 +26,11 @@ public sealed class User
     public int? PostalCode { get; set; }
 
     public int IdRol { get; set; }
+    
+    public string? RefreshToken { get; set;  }
+    public DateTime RefreshTokenExpiryTime { get; set; }
 
-    public ICollection<Address> Adresses { get; set; } = new List<Address>();
+    public ICollection<Address>? Adresses { get; set; } = new List<Address>();
 
-    public Role IdRolNavigation { get; set; } = null!;
+    public Role Role { get; set; } = null!;
 }
