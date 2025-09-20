@@ -1,13 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+using LvJersey.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Infrastructure.Data;
 
-namespace Shared.Infrastructure;
+namespace LvJersey.Infrastructure;
 
 public static class Extension
 {
-    public static void AddInfraestructure(this IServiceCollection services, IConfiguration configuration)
+    public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
         {
