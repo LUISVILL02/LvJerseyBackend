@@ -12,6 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Authentication\Authentication.Application\Authentication.Application.csproj" />
+      <ProjectReference Include="..\LvJersey.Infrastructure\LvJersey.Infrastructure.csproj" />
       <ProjectReference Include="..\Shared.Infrastructure\Shared.Infrastructure.csproj" />
       <ProjectReference Include="..\Users\Users.Application\Users.Application.csproj" />
     </ItemGroup>
