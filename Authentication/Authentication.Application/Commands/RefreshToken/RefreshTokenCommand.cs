@@ -1,3 +1,3 @@
 namespace Authentication.Application.Commands.RefreshToken;
 
-public record RefreshTokenCommand(int idUser, string refresh);
+public record RefreshTokenCommand(int IdUser, string Refresh);
