@@ -19,7 +19,7 @@ public class LoginCommandHandler(ApplicationDbContext context, IJwtUtil jwt) : I
             .Include(user => user.Role)
             .SingleOrDefaultAsync();
 
-        if (user is null) throw new UserFoundException("Credenciales inválidos");
+        if (user is null || user.Password is null) throw new UserFoundException("Credenciales inválidos");
         
         var passwordHash = new PasswordHasher<User>()
             .VerifyHashedPassword(user, user.Password!, command.Password);

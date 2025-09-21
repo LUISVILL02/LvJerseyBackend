@@ -1,5 +1,6 @@
 ﻿using Authentication.Application.Commands;
 using Authentication.Application.Commands.Login;
+using Authentication.Application.Commands.LoginWithSocial;
 using Authentication.Application.Commands.RefreshToken;
 using Authentication.Application.Commands.Register;
 using Authentication.Application.Dtos;
@@ -30,6 +31,13 @@ public class AuthController(ISender sender) : ControllerBase
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand refresh)
     {
         var response = await sender.SendCommandAsync<RefreshTokenCommand, AuthResponseDto>(refresh);
+        return Ok(response);
+    }
+
+    [HttpPost, Route("auth-social")]
+    public async Task<IActionResult> AuthSocial([FromBody] AuthSocialCommand authSocial)
+    {
+        var response = await sender.SendCommandAsync<AuthSocialCommand, AuthResponseDto>(authSocial);
         return Ok(response);
     }
 }
