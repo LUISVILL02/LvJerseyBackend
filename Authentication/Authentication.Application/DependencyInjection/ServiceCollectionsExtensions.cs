@@ -14,6 +14,7 @@ public static class ServiceCollectionsExtensions
     public static IServiceCollection AddAuthenticationModule(this IServiceCollection services)
     {
         services.AddScoped<IJwtUtil, JwtUtil>();
+        services.AddScoped<IExternalAuthValidator, ExternalAuthValidator>();
         services.AddHandlersFromAssembly(typeof(RegisterCommandHandler).Assembly);
         services.AddValidatorsFromAssembly(typeof(RegisterCommandValidator).Assembly);
         return services;
