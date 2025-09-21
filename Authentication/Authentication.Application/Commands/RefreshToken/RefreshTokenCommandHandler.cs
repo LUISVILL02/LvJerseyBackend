@@ -14,9 +14,9 @@ public class RefreshTokenCommandHandler(ApplicationDbContext contex, IJwtUtil jw
     {
         var user = await contex.Set<User>()
             .Include(u => u.Role)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(u => u.IdUser == command.IdUser);
 
-        if (user is null || user.RefreshTokenExpiryTime < DateTime.UtcNow || user.RefreshToken != command.refresh) 
+        if (user is null || user.RefreshTokenExpiryTime < DateTime.UtcNow || user.RefreshToken != command.Refresh) 
             throw new UnauthorizedAccessException("Sin autorización, vuelve a iniciar sesión");
 
         var accestoken = jwt.GenerateToken(user);
