@@ -7,7 +7,7 @@ public class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenComman
 {
     public RefreshTokenCommandValidator()
     {
-        RuleFor(command => command.refresh)
+        RuleFor(command => command.Refresh)
             .NotNull()
             .WithMessage("El refresh token no puede ser null")
             .NotEmpty()
