@@ -1,4 +1,3 @@
-using Shared.Infrastructure.Abstractions;
 
 namespace Users.Application;
 

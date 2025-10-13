@@ -1,40 +1,40 @@
+using Authentication.Application.Abstractions;
+using Authentication.Application.Abstractions.Users;
 using Authentication.Application.Dtos;
+using Authentication.Application.Dtos.Users;
 using Authentication.Domain.Exceptions;
-using Authentication.Infrastructure.Abstractions;
-using Domain.Entities;
-using LvJersey.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Shared.Infrastructure.Abstractions;
+using SendGrid.Helpers.Errors.Model;
+using Shared.Application.Abstractions;
 
 namespace Authentication.Application.Commands.Login;
 
-public class LoginCommandHandler(ApplicationDbContext context, IJwtUtil jwt) : ICommandHandler<LoginCommand, AuthResponseDto>
+public class LoginCommandHandler(IJwtUtil jwt, IUserAuthRepository userRepo) : ICommandHandler<LoginCommand, AuthResponseDto>
 {
     public async Task<AuthResponseDto> HandleAsync(LoginCommand command)
     {
-        var user = await context.Set<User>()
-            .Where(user => user.Email == command.UserName ||
-                           user.Nikname == command.UserName)
-            .Include(user => user.Role)
-            .SingleOrDefaultAsync();
+        var user = await userRepo.GetByUserNameAsync(command.UserName);
 
         if (user is null || user.Password is null) throw new UserFoundException("Credenciales inválidos");
         
-        var passwordHash = new PasswordHasher<User>()
+        var passwordHash = new PasswordHasher<UserDto>()
             .VerifyHashedPassword(user, user.Password!, command.Password);
         
         if(passwordHash == PasswordVerificationResult.Failed) throw new UserFoundException("Credenciales inválidos");
 
+        if (!user.EmailConfirmed) throw new BadRequestException("Coreo no confirmado");
         
-        var token = jwt.GenerateToken(user);
+        var userJwtInfo = new JwtUserInfo
+        (
+            user.IdUser,
+            user.Email,
+            user.Nickname!,
+            user.Role
+        );
+        var token = jwt.GenerateToken(userJwtInfo);
         var refreshToken = jwt.GenerateRefreshToken();
         
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddHours(12);
-
-        context.Update(user);
-        await context.SaveChangesAsync();
+        await userRepo.UpdateRefreshAndTimeToken(user.IdUser, refreshToken);
         
         return new AuthResponseDto(token, refreshToken);
     }

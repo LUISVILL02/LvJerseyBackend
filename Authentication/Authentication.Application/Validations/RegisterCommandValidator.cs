@@ -1,7 +1,5 @@
-using Authentication.Application.Commands;
 using Authentication.Application.Commands.Register;
 using FluentValidation;
-using FluentValidation.Validators;
 
 namespace Authentication.Application.Validations;
 

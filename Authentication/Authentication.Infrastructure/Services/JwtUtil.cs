@@ -2,8 +2,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Authentication.Infrastructure.Abstractions;
-using Domain.Entities;
+using Authentication.Application.Abstractions;
+using Authentication.Application.Dtos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,14 +11,14 @@ namespace Authentication.Infrastructure.Services;
 
 public class JwtUtil(IConfiguration configuration) : IJwtUtil
 {
-    public string GenerateToken(User user)
+    public string GenerateToken(JwtUserInfo user)
     {
         var claims = new[]
         {
             new Claim("idUser", user.IdUser.ToString()),
             new Claim("email", user.Email),
-            new Claim("rol", user.Role.Name!),
-            new Claim("nikName", user.Nikname!),
+            new Claim("rol", user.Role!),
+            new Claim("nikName", user.Nickname!),
         };
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!));

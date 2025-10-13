@@ -17,11 +17,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\LvJersey.Infrastructure\LvJersey.Infrastructure.csproj" />
-      <ProjectReference Include="..\..\Shared.Infrastructure\Shared.Infrastructure.csproj" />
-      <ProjectReference Include="..\..\Users\Users.Domain\Users.Domain.csproj" />
+      <ProjectReference Include="..\..\Shared\Shared.Application\Shared.Application.csproj" />
+      <ProjectReference Include="..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
       <ProjectReference Include="..\Authentication.Domain\Authentication.Domain.csproj" />
-      <ProjectReference Include="..\Authentication.Infrastructure\Authentication.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
