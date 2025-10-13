@@ -1,4 +1,4 @@
-namespace Authentication.Infrastructure.Utils;
+namespace Authentication.Infrastructure.Constants;
 
 public static class ProvidersAuthConstans
 {
