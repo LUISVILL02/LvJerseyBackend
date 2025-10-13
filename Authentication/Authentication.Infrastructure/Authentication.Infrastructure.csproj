@@ -7,7 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Shared\Shared.Application\Shared.Application.csproj" />
       <ProjectReference Include="..\..\Users\Users.Domain\Users.Domain.csproj" />
+        <ProjectReference Include="..\Authentication.Application\Authentication.Application.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
