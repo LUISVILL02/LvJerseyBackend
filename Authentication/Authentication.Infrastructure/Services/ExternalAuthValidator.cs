@@ -1,6 +1,6 @@
-using Authentication.Infrastructure.Abstractions;
-using Authentication.Infrastructure.Utils;
-using Authentication.Infrastructure.Utils.Dtos;
+using Authentication.Application.Abstractions;
+using Authentication.Application.Dtos;
+using Authentication.Infrastructure.Constants;
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 
@@ -23,11 +23,11 @@ public class ExternalAuthValidator : IExternalAuthValidator
                     Audience = new[] { _googleClientId }
                 });
             return new ExternalUserInfo
-            {
-                ProviderId = userPayload.Subject,
-                Email = userPayload.Email,
-                Name = userPayload.Name
-            };
+            (
+                userPayload.Subject,
+                userPayload.Email,
+                userPayload.Name
+            );
         }
         return null;
     }

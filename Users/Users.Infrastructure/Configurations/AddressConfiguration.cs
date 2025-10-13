@@ -8,6 +8,7 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
 {
     public void Configure(EntityTypeBuilder<Address> builder)
     {
+        builder.ToTable("Addresses");
         builder.HasKey(e => e.IdAddress).HasName("Addresses_pkey");
 
         builder.Property(e => e.IdAddress)

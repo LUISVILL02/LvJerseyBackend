@@ -1,40 +1,37 @@
+using Authentication.Application.Abstractions;
+using Authentication.Application.Abstractions.Users;
 using Authentication.Domain.Exceptions;
-using Domain.Entities;
-using LvJersey.Infrastructure.Data;
-using Microsoft.AspNetCore.Identity;
-using Shared.Infrastructure.Abstractions;
+using Shared.Application.Abstractions;
 
 namespace Authentication.Application.Commands.Register;
 
-public class RegisterCommandHandler(ApplicationDbContext context) : ICommandHandler<RegisterCommand, bool>
+public class RegisterCommandHandler(IUserAuthRepository userRepo, IVerificationService verification) : ICommandHandler<RegisterCommand, bool>
 {
     public async Task<bool> HandleAsync(RegisterCommand command)
     {
         var inner = new List<Exception>();
 
-        var user = context.Set<User>().FirstOrDefault(u => u.Email == command.Email);
-        if(user is not null) inner.Add(new UserFoundException($"El email {command.Email} ya existe."));
+        var user = await userRepo.GetByUserNameAsync(command.Email);
+        if(user is not null && user.EmailConfirmed) inner.Add(new UserFoundException($"El email {command.Email} ya existe."));
         
-        user = context.Set<User>().FirstOrDefault(u => u.Nikname == command.NickName);
-        if (user is not null) inner.Add(new UserFoundException($"El nickName {command.NickName} ya está en uso."));
+        user = await userRepo.GetByUserNameAsync(command.NickName);
+        if (user is not null && user.EmailConfirmed) inner.Add(new UserFoundException($"El nickName {command.NickName} ya está en uso."));
         
         if (inner.Count > 0) throw new AggregateException("", inner);
-        
-        user = new User
-        {
-            Email = command.Email,
-            Password = command.Password,
-            Nikname = command.NickName
-        };
 
-        user.Role = context.Set<Role>()
-            .FirstOrDefault(role => role.Name == Enum.GetName(RoleEnum.User))!;
+        var idUser = 0;
         
-        var hashedPassword = new PasswordHasher<User>().HashPassword(user, command.Password);
-        user.Password = hashedPassword;
-        
-        context.Set<User>().Add(user);
-        await context.SaveChangesAsync();
+        if (user is null)
+        {
+            idUser = await userRepo.RegisterUserAsync(command);
+        }
+        else
+        {
+            idUser = user.IdUser;
+        }
+
+        var code = await verification.SendEmailVerificationCodeAsync(command.NickName, command.Email);
+        await userRepo.AggreCodeExpirationAsync(idUser, code);
 
         return true;
     }
