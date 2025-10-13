@@ -6,4 +6,16 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\Shared\Shared.Application\Shared.Application.csproj" />
+      <ProjectReference Include="..\..\Users\Users.Domain\Users.Domain.csproj" />
+        <ProjectReference Include="..\Authentication.Application\Authentication.Application.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.Apis.Auth" Version="1.71.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
+    </ItemGroup>
+
 </Project>

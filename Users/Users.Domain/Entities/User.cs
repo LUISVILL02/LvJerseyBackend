@@ -15,7 +15,7 @@ public sealed class User
 
     public string? LastName { get; set; }
 
-    public string? Nikname { get; set; }
+    public string? Nickname { get; set; }
 
     public string? Country { get; set; }
 
@@ -26,8 +26,14 @@ public sealed class User
     public int? PostalCode { get; set; }
 
     public int IdRol { get; set; }
+    
+    public string? RefreshToken { get; set;  }
+    public DateTime RefreshTokenExpiryTime { get; set; }
+    
+    public bool EmailConfirmed { get; set; }
 
-    public ICollection<Address> Adresses { get; set; } = new List<Address>();
+    public ICollection<Address>? Adresses { get; set; } = new List<Address>();
+    public ICollection<EmailVerification> EmailVerifications { get; set; } = new List<EmailVerification>();
 
-    public Role IdRolNavigation { get; set; } = null!;
+    public Role Role { get; set; } = null!;
 }
