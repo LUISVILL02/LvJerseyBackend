@@ -6,7 +6,7 @@ namespace Shared.Infrastructure.Abstractions.Implementations;
 
 public class Sender(IServiceProvider provider) : ISender
 {
-    public async Task<TResult> SendCommandAsync<TCommand, TResult>(TCommand command)
+    public async Task<TResult> SendCommandAsync<TCommand, TResult>(TCommand command) where TCommand : ICommand<TResult>
     {
         var validators = provider.GetServices<IValidator<TCommand>>();
         foreach (var v in validators)

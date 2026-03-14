@@ -11,6 +11,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<ISender, Sender>();
         services.AddScoped<IEmailSender, SendGridEmailSender>();
+        //services.AddScoped<IUserContextService, UserContextService>();
+
+        // Registrar IHttpContextAccessor y el servicio de contexto de usuario
+        services.AddScoped<IUserContextService, HttpContextUserContextService>();
+
         return services;
     }
 }
