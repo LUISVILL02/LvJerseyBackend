@@ -16,6 +16,6 @@ public sealed record CreateJerseyCommand(
     int Stock,
     IReadOnlyCollection<string> Categories,
     IReadOnlyCollection<ImageUploadDto> Images,
-    IReadOnlyCollection<ImageUploadDto> Patches
+    IReadOnlyCollection<PatchUploadDto> Patches
 ) : ICommand<int>;
 
