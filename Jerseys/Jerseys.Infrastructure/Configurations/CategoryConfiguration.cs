@@ -19,10 +19,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .HasColumnType("varchar")
             .HasColumnName("name");
 
-        builder.HasMany(c => c.CategoriesJerseys)
-            .WithOne(cj => cj.Category)
-            .HasForeignKey(cj => cj.IdCategory)
-            .HasConstraintName("Categ_jer_ca");
+        // La relación con CategoriesJersey se configura en CategoriesJerseyConfiguration
     }
 }
 

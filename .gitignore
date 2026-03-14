@@ -4,3 +4,19 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea
+
+# IDE / Visual Studio
+.vs/
+*.DotSettings.user
+
+# Secrets / Environment
+appsettings.Development.json
+
+# Tooling / Agent
+.agent/
+.agents/
+skills-lock.json
+nul
+
+# HTTP test files
+*.http

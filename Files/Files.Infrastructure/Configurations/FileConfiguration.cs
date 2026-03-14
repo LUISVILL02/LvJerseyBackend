@@ -1,3 +1,4 @@
+using Files.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using File = Files.Domain.Entities.File;
@@ -33,7 +34,40 @@ public class FileConfiguration : IEntityTypeConfiguration<File>
         builder.Property(e => e.IdUser)
             .HasColumnName("id_usuario");
 
-        // Assuming relationship to Reviews is managed by DB FK, 
-        // strictly speaking we cannot configure EF relationship without Review entity.
+        builder.Property(e => e.ProcessingStatus)
+            .HasColumnName("processing_status")
+            .HasDefaultValue(FileProcessingStatus.Pending)
+            .HasConversion<int>();
+
+        builder.Property(e => e.ContainerType)
+            .HasColumnName("container_type")
+            .HasMaxLength(50);
+
+        builder.Property(e => e.TempFilePath)
+            .HasColumnName("temp_file_path")
+            .HasMaxLength(500);
+
+        builder.Property(e => e.ContentType)
+            .HasColumnName("content_type")
+            .HasMaxLength(100);
+
+        builder.Property(e => e.ErrorMessage)
+            .HasColumnName("error_message")
+            .HasMaxLength(1000);
+
+        builder.Property(e => e.CreatedAt)
+            .HasColumnName("created_at")
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        builder.Property(e => e.UpdatedAt)
+            .HasColumnName("updated_at");
+
+        // Índice para búsquedas por jersey
+        builder.HasIndex(e => e.IdJersey)
+            .HasDatabaseName("IX_Files_IdJersey");
+
+        // Índice para el procesamiento de archivos pendientes
+        builder.HasIndex(e => e.ProcessingStatus)
+            .HasDatabaseName("IX_Files_ProcessingStatus");
     }
 }
