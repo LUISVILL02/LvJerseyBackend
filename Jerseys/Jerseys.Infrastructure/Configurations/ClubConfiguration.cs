@@ -28,7 +28,7 @@ public class ClubConfiguration : IEntityTypeConfiguration<Club>
 
         // Relación con Jersey
         builder.HasMany(e => e.Jerseys)
-            .WithOne(j => j.Club)
+            .WithOne(j => j.ClubNavigation)
             .HasForeignKey(j => j.IdClub)
             .HasConstraintName("fk_club");
     }

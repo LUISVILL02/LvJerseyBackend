@@ -53,9 +53,18 @@ public class JerseyConfiguration : IEntityTypeConfiguration<Jersey>
             .IsRequired()
             .HasColumnName("id_club");
 
+        builder.Property(e => e.ClubName)
+            .HasColumnType("character varying")
+            .HasColumnName("club");
+
         builder.HasMany(j => j.FavoriteJerseys)
             .WithOne(f => f.Jersey)
             .HasForeignKey(j => j.idJersey)
             .HasConstraintName("Favorite_jerseys");
+
+        builder.HasOne(j => j.ClubNavigation)
+            .WithMany(c => c.Jerseys)
+            .HasForeignKey(j => j.IdClub)
+            .HasConstraintName("Jersey_club_fkey");
     }
 }

@@ -25,8 +25,15 @@ public sealed class Jersey
 
     public int IdClub { get; init; }
 
+    /// <summary>
+    /// Nombre del club (desnormalizado para consultas rápidas).
+    /// </summary>
+    public string? ClubName { get; init; }
+
     // Navegación
-    public Club Club { get; init; } = null!;
+    public Club ClubNavigation { get; init; } = null!;
     public ICollection<Favorite> FavoriteJerseys { get; init; } = new List<Favorite>();
+    public ICollection<CategoriesJersey> CategoriesJerseys { get; init; } = new List<CategoriesJersey>();
+    public ICollection<PatchJersey> PatchJerseys { get; init; } = new List<PatchJersey>();
 }
 

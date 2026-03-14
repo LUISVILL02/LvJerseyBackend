@@ -1,14 +1,17 @@
 using Authentication.Domain.Exceptions;
 using Authentication.Infrastructure.DependencyInjection;
+using Files.Infrastructure.DependencyInjection;
 using Jerseys.Infrastructure.DependencyInjection;
 using LvJersey.Infrastructure;
 using LvJerseyApi.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Shared.Infrastructure.DependencyInjection;
 using Users.Infrastructure.DependencyInjection;
+using System.Globalization;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,12 +41,24 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddSharedApplication();
+builder.Services.AddStorageServices(configuration);
+builder.Services.AddFilesModule();
 builder.Services.AddUsersModule();
 builder.Services.AddJerseysModule();
 
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
+
+// Configurar cultura invariante para asegurar que los decimales usen punto (.) como separador
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var invariantCulture = CultureInfo.InvariantCulture;
+    options.DefaultRequestCulture = new RequestCulture(invariantCulture);
+    options.SupportedCultures = [invariantCulture];
+    options.SupportedUICultures = [invariantCulture];
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -163,6 +178,8 @@ app.UseExceptionHandler(appBuilder =>
 
 app.UseCors("MiPoliticaCorsS"); 
 
+app.UseRequestLocalization();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); // <-- IMPORTANTE: Agregar esto antes de Authorization
@@ -171,3 +188,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Clase parcial para permitir acceso desde tests de integración
+public partial class Program { }
