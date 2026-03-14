@@ -14,6 +14,9 @@
     <ItemGroup>
       <ProjectReference Include="..\..\Authentication\Authentication.Application\Authentication.Application.csproj" />
       <ProjectReference Include="..\..\Authentication\Authentication.Infrastructure\Authentication.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\Files\Files.Infrastructure\Files.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\Jerseys\Jerseys.Application\Jerseys.Application.csproj" />
+      <ProjectReference Include="..\..\Jerseys\Jerseys.Infrastructure\Jerseys.Infrastructure.csproj" />
       <ProjectReference Include="..\..\Users\Users.Application\Users.Application.csproj" />
       <ProjectReference Include="..\..\Users\Users.Infrastructure\Users.Infrastructure.csproj" />
       <ProjectReference Include="..\..\Shared\Shared.Application\Shared.Application.csproj" />

@@ -1,6 +1,6 @@
 ﻿namespace Shared.Application.Abstractions;
 
-public interface ICommandHandler<in TCommand, TResult>
+public interface ICommandHandler<in TCommand, TResult>  where TCommand : ICommand<TResult>
 {
     Task<TResult> HandleAsync(TCommand command);
 }

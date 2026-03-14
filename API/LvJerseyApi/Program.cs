@@ -1,11 +1,15 @@
 using Authentication.Domain.Exceptions;
 using Authentication.Infrastructure.DependencyInjection;
+using Jerseys.Infrastructure.DependencyInjection;
 using LvJersey.Infrastructure;
 using LvJerseyApi.Exceptions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Shared.Infrastructure.DependencyInjection;
 using Users.Infrastructure.DependencyInjection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,8 +17,29 @@ var configuration = builder.Configuration;
 
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddAuthenticationModule();
+
+// Configuración de Autenticación JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false, // Configura según tus necesidades (true si tienes Issuer definido)
+        ValidateAudience = false, // Configura según tus necesidades (true si tienes Audience definido)
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!))
+    };
+});
+
 builder.Services.AddSharedApplication();
 builder.Services.AddUsersModule();
+builder.Services.AddJerseysModule();
 
 
 builder.Services.AddControllers();
@@ -140,6 +165,7 @@ app.UseCors("MiPoliticaCorsS");
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); // <-- IMPORTANTE: Agregar esto antes de Authorization
 app.UseAuthorization();
 
 app.MapControllers();
