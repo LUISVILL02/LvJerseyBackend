@@ -22,7 +22,7 @@ public class CreateJerseyCommandValidatorTests
             IdClub: 1,
             Type: "Player",
             Sex: "Male",
-            Size: "M",
+            SizeIds: [1, 2, 3],
             Weight: 0.3m,
             Brand: "Adidas",
             Season: "24/25",

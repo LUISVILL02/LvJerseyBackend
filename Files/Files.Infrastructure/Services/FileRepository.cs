@@ -67,6 +67,28 @@ public class FileRepository(ApplicationDbContext context) : IFileRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<File?> GetByPatchIdAsync(int idPatch, CancellationToken cancellationToken = default)
+    {
+        return await context.Set<FilePatch>()
+            .Where(fp => fp.IdPatch == idPatch)
+            .Select(fp => fp.File)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<Dictionary<int, string>> GetUrlsByPatchIdsAsync(IEnumerable<int> patchIds, CancellationToken cancellationToken = default)
+    {
+        var patchIdList = patchIds.ToList();
+        
+        var result = await context.Set<FilePatch>()
+            .Where(fp => patchIdList.Contains(fp.IdPatch))
+            .Select(fp => new { fp.IdPatch, fp.File.Url })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return result.ToDictionary(x => x.IdPatch, x => x.Url);
+    }
+
     public async Task DeleteAsync(int idFile, CancellationToken cancellationToken = default)
     {
         var file = await context.Set<File>()

@@ -9,7 +9,6 @@ public class CreateJerseyCommandValidator : AbstractValidator<CreateJerseyComman
     private static readonly string[] AllowedContentTypes = ["image/jpeg", "image/png", "image/webp"];
     private static readonly string[] AllowedTypes = ["Player", "Fan", "Retro"];
     private static readonly string[] AllowedSex = ["Male", "Female", "Unisex"];
-    private static readonly string[] AllowedSizes = ["S", "M", "L", "XL", "XXL"];
     
     private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5MB
     private const int MaxImagesPerJersey = 10;
@@ -34,10 +33,10 @@ public class CreateJerseyCommandValidator : AbstractValidator<CreateJerseyComman
             .Must(sex => AllowedSex.Contains(sex))
             .WithMessage($"El sexo debe ser uno de: {string.Join(", ", AllowedSex)}");
 
-        RuleFor(x => x.Size)
-            .NotEmpty().WithMessage("La talla es requerida.")
-            .Must(size => AllowedSizes.Contains(size))
-            .WithMessage($"La talla debe ser una de: {string.Join(", ", AllowedSizes)}");
+        RuleFor(x => x.SizeIds)
+            .NotEmpty().WithMessage("Debe seleccionar al menos una talla.")
+            .Must(sizes => sizes.All(id => id > 0))
+            .WithMessage("Todos los IDs de talla deben ser válidos (mayor a 0).");
 
         RuleFor(x => x.Weight)
             .GreaterThan(0).WithMessage("El peso debe ser mayor a 0.");

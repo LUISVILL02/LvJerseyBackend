@@ -35,5 +35,6 @@ public sealed class Jersey
     public ICollection<Favorite> FavoriteJerseys { get; init; } = new List<Favorite>();
     public ICollection<CategoriesJersey> CategoriesJerseys { get; init; } = new List<CategoriesJersey>();
     public ICollection<PatchJersey> PatchJerseys { get; init; } = new List<PatchJersey>();
+    public ICollection<SizeJersey> SizeJerseys { get; init; } = new List<SizeJersey>();
 }
 

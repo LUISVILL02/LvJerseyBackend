@@ -8,7 +8,7 @@ public sealed record CreateJerseyCommand(
     int IdClub,
     string Type,
     string Sex,
-    string Size,
+    IReadOnlyCollection<int> SizeIds,
     decimal Weight,
     string Brand,
     string Season,

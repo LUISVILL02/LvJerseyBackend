@@ -38,9 +38,9 @@ public sealed class CreateJerseyRequest
     public string Sex { get; set; } = default!;
 
     /// <summary>
-    /// Talla: S, M, L, XL, XXL
+    /// IDs de las tallas disponibles para este jersey.
     /// </summary>
-    public string Size { get; set; } = default!;
+    public List<int> SizeIds { get; set; } = new();
 
     /// <summary>
     /// Peso en kilogramos.
