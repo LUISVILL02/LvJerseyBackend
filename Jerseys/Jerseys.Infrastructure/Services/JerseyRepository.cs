@@ -76,4 +76,44 @@ public class JerseyRepository(ApplicationDbContext context) : IJerseyRepository
             .Select(c => c.Name)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task CreateSizeJerseysAsync(int idJersey, IEnumerable<int> sizeIds, CancellationToken cancellationToken = default)
+    {
+        var sizeJerseys = sizeIds.Select(sizeId => new SizeJersey
+        {
+            IdJersey = idJersey,
+            IdSize = sizeId
+        });
+
+        context.Set<SizeJersey>().AddRange(sizeJerseys);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<Jersey?> GetDetailByIdAsync(int idJersey, CancellationToken cancellationToken = default)
+    {
+        return await context.Set<Jersey>()
+            .Include(j => j.ClubNavigation)
+                .ThenInclude(c => c.League)
+            .Include(j => j.CategoriesJerseys)
+                .ThenInclude(cj => cj.Category)
+            .Include(j => j.SizeJerseys)
+                .ThenInclude(sj => sj.Size)
+            .Include(j => j.PatchJerseys)
+                .ThenInclude(pj => pj.Patch)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.IdJersey == idJersey, cancellationToken);
+    }
+
+    public async Task<bool> IsFavoriteAsync(int idJersey, int idUser, CancellationToken cancellationToken = default)
+    {
+        return await context.Set<Favorite>()
+            .AnyAsync(f => f.idJersey == idJersey && f.IdUser == idUser, cancellationToken);
+    }
+
+    public async Task<List<Size>> GetAllSizesAsync(CancellationToken cancellationToken = default)
+    {
+        return await context.Set<Size>()
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
 }

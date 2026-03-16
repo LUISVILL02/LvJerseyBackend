@@ -48,10 +48,17 @@ public class CreateJerseyCommandHandler(
 
         logger.LogInformation("Jersey creado con ID: {JerseyId}", jerseyId);
 
-        // 4. Procesar imágenes del jersey
+        // 4. Crear relaciones con las tallas
+        if (command.SizeIds.Count > 0)
+        {
+            await jerseyRepository.CreateSizeJerseysAsync(jerseyId, command.SizeIds);
+            logger.LogInformation("Tallas asociadas al jersey {JerseyId}: {SizeIds}", jerseyId, string.Join(", ", command.SizeIds));
+        }
+
+        // 5. Procesar imágenes del jersey
         await ProcessImagesAsync(command.Images, jerseyId);
 
-        // 5. Procesar patches (crear entidades Patch, relaciones y archivos)
+        // 6. Procesar patches (crear entidades Patch, relaciones y archivos)
         await ProcessPatchesAsync(command.Patches, jerseyId);
 
         return jerseyId;
