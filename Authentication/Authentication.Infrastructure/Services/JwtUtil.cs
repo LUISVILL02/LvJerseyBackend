@@ -17,7 +17,7 @@ public class JwtUtil(IConfiguration configuration) : IJwtUtil
         {
             new Claim("idUser", user.IdUser.ToString()),
             new Claim("email", user.Email),
-            new Claim("rol", user.Role!),
+            new Claim("rol", user.Role!.ToUpper()),
             new Claim("nikName", user.Nickname!),
         };
         

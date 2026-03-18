@@ -28,8 +28,8 @@ public class LoginCommandHandler(IJwtUtil jwt, IUserAuthRepository userRepo) : I
         (
             user.IdUser,
             user.Email,
-            user.Nickname!,
-            user.Role
+            user.Role,
+            user.Nickname!
         );
         var token = jwt.GenerateToken(userJwtInfo);
         var refreshToken = jwt.GenerateRefreshToken();
