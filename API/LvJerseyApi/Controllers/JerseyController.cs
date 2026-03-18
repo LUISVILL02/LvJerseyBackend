@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Jerseys.Application.Commands.CreateJersey;
 using Jerseys.Application.Dtos;
+using Jerseys.Application.Queries.JerseyDetail;
 using Jerseys.Application.Queries.JerseysHome;
 using LvJerseyApi.Request;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +23,25 @@ public class JerseyController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetJerseyshome()
     {
         var result = await sender.SendQueryAsync<HomeJerseysQuery, List<LeagueWithJerseysResponse>>(new HomeJerseysQuery());
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Obtiene el detalle completo de un jersey.
+    /// </summary>
+    /// <param name="id">ID del jersey</param>
+    /// <returns>Detalle del jersey con imágenes, tallas, patches, reseñas, etc.</returns>
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(JerseyDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetJerseyDetail(int id)
+    {
+        var result = await sender.SendQueryAsync<JerseyDetailQuery, JerseyDetailResponse?>(
+            new JerseyDetailQuery(id));
+
+        if (result is null)
+            return NotFound(new { Error = $"Jersey con ID {id} no encontrado." });
+
         return Ok(result);
     }
 
@@ -126,7 +146,7 @@ public class JerseyController(ISender sender) : ControllerBase
             IdClub: request.IdClub,
             Type: request.Type,
             Sex: request.Sex,
-            Size: request.Size,
+            SizeIds: request.SizeIds,
             Weight: request.Weight,
             Brand: request.Brand,
             Season: request.Season,

@@ -36,6 +36,16 @@ public interface IFileRepository
     Task<IReadOnlyList<File>> GetByJerseyIdAsync(int idJersey, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Obtiene el primer archivo (imagen) asociado a un patch.
+    /// </summary>
+    Task<File?> GetByPatchIdAsync(int idPatch, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Obtiene los archivos de múltiples patches.
+    /// </summary>
+    Task<Dictionary<int, string>> GetUrlsByPatchIdsAsync(IEnumerable<int> patchIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Elimina un archivo.
     /// </summary>
     Task DeleteAsync(int idFile, CancellationToken cancellationToken = default);

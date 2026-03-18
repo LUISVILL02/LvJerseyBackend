@@ -77,7 +77,7 @@ public class CreateJerseyWorkflowTests : IDisposable
             IdClub: idClub,
             Type: "Player",
             Sex: "Male",
-            Size: "L",
+            SizeIds: [1, 2, 3],
             Weight: 0.35m,
             Brand: "Nike",
             Season: "24/25",
