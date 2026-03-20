@@ -1,3 +1,4 @@
+using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Logging;
@@ -7,9 +8,6 @@ using Shared.Application.Settings;
 
 namespace Shared.Infrastructure.Services;
 
-/// <summary>
-/// Implementación del servicio de almacenamiento de blobs usando Storj (S3-compatible).
-/// </summary>
 public sealed class StorjBlobService : IBlobStorageService, IDisposable
 {
     private readonly IAmazonS3 _s3Client;
@@ -24,11 +22,13 @@ public sealed class StorjBlobService : IBlobStorageService, IDisposable
         _settings = settings.Value;
         _logger = logger;
 
-        // Configurar cliente S3 para Storj
+        AWSConfigsS3.UseSignatureVersion4 = true;
+
         var config = new AmazonS3Config
         {
             ServiceURL = _settings.ServiceUrl,
-            ForcePathStyle = true // Requerido para Storj y otros S3-compatible
+            ForcePathStyle = true,
+            UseHttp = _settings.ServiceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
         };
 
         _s3Client = new AmazonS3Client(
@@ -126,6 +126,33 @@ public sealed class StorjBlobService : IBlobStorageService, IDisposable
         {
             return false;
         }
+    }
+
+    public async Task<string> GetPresignedUrlAsync(
+        string bucketName,
+        string objectKey,
+        TimeSpan expiration,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = bucketName,
+            Key = objectKey,
+            Expires = DateTime.UtcNow.Add(expiration),
+            Verb = HttpVerb.GET
+        };
+
+        _logger.LogDebug(
+            "Generando URL firmada para {BucketName}/{ObjectKey} con expiración {Expiration} minutos",
+            bucketName, objectKey, expiration.TotalMinutes);
+
+        var url = await _s3Client.GetPreSignedURLAsync(request);
+
+        _logger.LogDebug(
+            "URL firmada generada: {Url}",
+            url);
+
+        return url;
     }
 
     private async Task EnsureBucketExistsAsync(
