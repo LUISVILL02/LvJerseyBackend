@@ -16,6 +16,8 @@ public static class ServiceCollectionsExtensions
     {
         // Registrar repositorios
         services.AddScoped<IJerseyRepository, JerseyRepository>();
+        services.AddScoped<ILeagueRepository, LeagueRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IPatchRepository, PatchRepository>();
         
         // Registrar handlers
