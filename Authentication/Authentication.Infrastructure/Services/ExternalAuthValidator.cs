@@ -11,7 +11,8 @@ public class ExternalAuthValidator : IExternalAuthValidator
     private readonly string _googleClientId;
     public ExternalAuthValidator(IConfiguration config)
     {
-        _googleClientId = config["Authentication:Google:ClientId"];
+        _googleClientId = config["Authentication:Google:ClientId"]
+            ?? throw new InvalidOperationException("Authentication:Google:ClientId is not configured");
     }
     public async Task<ExternalUserInfo> ValidateAsync(string provider, string tokenId)
     {
@@ -29,6 +30,6 @@ public class ExternalAuthValidator : IExternalAuthValidator
                 userPayload.Name
             );
         }
-        return null;
+        throw new NotSupportedException($"Provider '{provider}' is not supported");
     }
 }

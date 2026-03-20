@@ -41,4 +41,9 @@ public sealed class StorageSettings
     /// Extensiones de archivo permitidas.
     /// </summary>
     public string[] AllowedExtensions { get; set; } = [".jpg", ".jpeg", ".png", ".webp"];
+
+    /// <summary>
+    /// Tiempo de expiración para URLs firmadas en minutos (default: 60).
+    /// </summary>
+    public int PresignedUrlExpirationMinutes { get; set; } = 60;
 }
