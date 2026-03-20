@@ -8,7 +8,6 @@ public sealed class League
 
     public string Country { get; init; } = null!;
 
-    // Navegación
     public ICollection<Club> Clubs { get; init; } = new List<Club>();
 }
 
