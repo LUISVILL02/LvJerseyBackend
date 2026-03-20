@@ -32,7 +32,8 @@ public class LeagueConfiguration : IEntityTypeConfiguration<League>
         builder.HasMany(e => e.Clubs)
             .WithOne(c => c.League)
             .HasForeignKey(c => c.IdLeague)
-            .HasConstraintName("fk_league");
+            .HasConstraintName("fk_league")
+            .IsRequired(false);
     }
 }
 

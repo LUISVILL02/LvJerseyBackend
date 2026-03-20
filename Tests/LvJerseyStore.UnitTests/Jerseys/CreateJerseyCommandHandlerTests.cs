@@ -15,6 +15,7 @@ namespace LvJerseyStore.UnitTests.Jerseys;
 public class CreateJerseyCommandHandlerTests
 {
     private readonly IJerseyRepository _jerseyRepository;
+    private readonly ICategoryRepository _categoryRepository;
     private readonly IPatchRepository _patchRepository;
     private readonly IFileRepository _fileRepository;
     private readonly IFileUploadQueue _fileUploadQueue;
@@ -24,6 +25,7 @@ public class CreateJerseyCommandHandlerTests
     public CreateJerseyCommandHandlerTests()
     {
         _jerseyRepository = Substitute.For<IJerseyRepository>();
+        _categoryRepository = Substitute.For<ICategoryRepository>();
         _patchRepository = Substitute.For<IPatchRepository>();
         _fileRepository = Substitute.For<IFileRepository>();
         _fileUploadQueue = Substitute.For<IFileUploadQueue>();
@@ -31,6 +33,7 @@ public class CreateJerseyCommandHandlerTests
 
         _handler = new CreateJerseyCommandHandler(
             _jerseyRepository,
+            _categoryRepository,
             _patchRepository,
             _fileRepository,
             _fileUploadQueue,
@@ -43,10 +46,10 @@ public class CreateJerseyCommandHandlerTests
     {
         return new CreateJerseyCommand(
             Name: "Real Madrid Home 24/25",
-            IdClub: 1,
+            ClubName: "Real Madrid",
             Type: "Player",
             Sex: "Male",
-            SizeIds: [1, 2, 3],
+            SizeSymbols: ["S", "M", "L"],
             Weight: 0.3m,
             Brand: "Adidas",
             Season: "24/25",
@@ -57,14 +60,14 @@ public class CreateJerseyCommandHandlerTests
             Patches: patches ?? []);
     }
 
-    private static Jersey CreateJerseyWithId(int id, CreateJerseyCommand command)
+    private static Jersey CreateJerseyWithId(int id, CreateJerseyCommand command, int idClub)
     {
         return new Jersey
         {
             IdJersey = id,
             Name = command.Name,
-            IdClub = command.IdClub,
-            ClubName = "Test Club",
+            IdClub = idClub,
+            ClubName = "Real Madrid",
             Type = command.Type,
             Sex = command.Sex,
             Weight = command.Weight,
@@ -84,12 +87,16 @@ public class CreateJerseyCommandHandlerTests
         // Arrange
         var command = CreateValidCommand();
         const int expectedJerseyId = 42;
+        const int idClub = 1;
 
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns("Real Madrid");
-
+        _jerseyRepository.GetOrCreateClubAsync(command.ClubName, command.Categories, Arg.Any<CancellationToken>())
+            .Returns((idClub, "Real Madrid"));
+        _jerseyRepository.GetSizeIdsBySymbolsAsync(command.SizeSymbols, Arg.Any<CancellationToken>())
+            .Returns([1, 2, 3]);
+        _categoryRepository.GetOrCreateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { IdCategory = 1, Name = "Primera División" });
         _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(callInfo => CreateJerseyWithId(expectedJerseyId, command));
+            .Returns(callInfo => CreateJerseyWithId(expectedJerseyId, command, idClub));
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -99,30 +106,30 @@ public class CreateJerseyCommandHandlerTests
         
         await _jerseyRepository.Received(1).CreateAsync(Arg.Is<Jersey>(j =>
             j.Name == command.Name &&
-            j.IdClub == command.IdClub &&
+            j.IdClub == idClub &&
             j.Type == command.Type &&
             j.Price == command.Price &&
             j.Stock == command.Stock));
     }
 
     /// <summary>
-    /// Test 2: Verifica que se lanza excepción cuando el club no existe
+    /// Test 2: Verifica que se lanza excepción cuando el club no existe y no hay liga en categorías
     /// </summary>
     [Fact]
-    public async Task HandleAsync_WhenClubDoesNotExist_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WhenClubDoesNotExistAndNoLeagueInCategories_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var command = CreateValidCommand();
 
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns((string?)null);
+        _jerseyRepository.GetOrCreateClubAsync(command.ClubName, command.Categories, Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<(int, string)>(new InvalidOperationException($"No se encontró una liga válida en las categorías. El club '{command.ClubName}' no puede crearse sin liga.")));
 
         // Act
         var act = () => _handler.HandleAsync(command);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage($"El club con ID {command.IdClub} no existe.");
+            .WithMessage($"No se encontró una liga válida en las categorías. El club '{command.ClubName}' no puede crearse sin liga.");
         
         await _jerseyRepository.DidNotReceive().CreateAsync(Arg.Any<Jersey>());
     }
@@ -142,11 +149,16 @@ public class CreateJerseyCommandHandlerTests
         var command = CreateValidCommand(images: images);
         const int expectedJerseyId = 42;
         const int expectedFileId = 100;
+        const int idClub = 1;
 
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns("Real Madrid");
+        _jerseyRepository.GetOrCreateClubAsync(command.ClubName, command.Categories, Arg.Any<CancellationToken>())
+            .Returns((idClub, "Real Madrid"));
+        _jerseyRepository.GetSizeIdsBySymbolsAsync(command.SizeSymbols, Arg.Any<CancellationToken>())
+            .Returns([1, 2, 3]);
+        _categoryRepository.GetOrCreateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { IdCategory = 1, Name = "Primera División" });
         _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(callInfo => CreateJerseyWithId(expectedJerseyId, command));
+            .Returns(callInfo => CreateJerseyWithId(expectedJerseyId, command, idClub));
 
         _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>())
             .Returns(callInfo =>
@@ -207,11 +219,16 @@ public class CreateJerseyCommandHandlerTests
         const int expectedJerseyId = 42;
         const int expectedPatchId = 10;
         const int expectedFileId = 100;
+        const int idClub = 1;
 
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns("Real Madrid");
+        _jerseyRepository.GetOrCreateClubAsync(command.ClubName, command.Categories, Arg.Any<CancellationToken>())
+            .Returns((idClub, "Real Madrid"));
+        _jerseyRepository.GetSizeIdsBySymbolsAsync(command.SizeSymbols, Arg.Any<CancellationToken>())
+            .Returns([1, 2, 3]);
+        _categoryRepository.GetOrCreateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { IdCategory = 1, Name = "Primera División" });
         _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(callInfo => CreateJerseyWithId(expectedJerseyId, command));
+            .Returns(callInfo => CreateJerseyWithId(expectedJerseyId, command, idClub));
 
         _patchRepository.CreateAsync(Arg.Any<Patch>())
             .Returns(new Patch { IdPatch = expectedPatchId, NamePatch = "Champions League", Season = "24/25" });

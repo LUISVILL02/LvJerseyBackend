@@ -11,11 +11,6 @@ public sealed record FileUploadMessage
     public required int IdFile { get; init; }
 
     /// <summary>
-    /// ID del jersey al que pertenece el archivo.
-    /// </summary>
-    public required int IdJersey { get; init; }
-
-    /// <summary>
     /// Ruta temporal donde se guardó el archivo.
     /// </summary>
     public required string TempFilePath { get; init; }

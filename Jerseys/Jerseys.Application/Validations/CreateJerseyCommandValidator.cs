@@ -20,8 +20,9 @@ public class CreateJerseyCommandValidator : AbstractValidator<CreateJerseyComman
             .NotEmpty().WithMessage("El nombre del jersey es requerido.")
             .MaximumLength(200).WithMessage("El nombre no puede exceder 200 caracteres.");
 
-        RuleFor(x => x.IdClub)
-            .GreaterThan(0).WithMessage("Debe seleccionar un club válido.");
+        RuleFor(x => x.ClubName)
+            .NotEmpty().WithMessage("El nombre del club es requerido.")
+            .MaximumLength(100).WithMessage("El nombre del club no puede exceder 100 caracteres.");
 
         RuleFor(x => x.Type)
             .NotEmpty().WithMessage("El tipo de jersey es requerido.")
@@ -33,10 +34,10 @@ public class CreateJerseyCommandValidator : AbstractValidator<CreateJerseyComman
             .Must(sex => AllowedSex.Contains(sex))
             .WithMessage($"El sexo debe ser uno de: {string.Join(", ", AllowedSex)}");
 
-        RuleFor(x => x.SizeIds)
+        RuleFor(x => x.SizeSymbols)
             .NotEmpty().WithMessage("Debe seleccionar al menos una talla.")
-            .Must(sizes => sizes.All(id => id > 0))
-            .WithMessage("Todos los IDs de talla deben ser válidos (mayor a 0).");
+            .Must(sizes => sizes.All(s => !string.IsNullOrWhiteSpace(s)))
+            .WithMessage("Los símbolos de talla no pueden estar vacíos.");
 
         RuleFor(x => x.Weight)
             .GreaterThan(0).WithMessage("El peso debe ser mayor a 0.");

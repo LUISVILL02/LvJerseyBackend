@@ -78,8 +78,8 @@ public sealed class FileUploadQueueProcessor : BackgroundService
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "Procesando archivo {FileId} para jersey {JerseyId}",
-            fileUpload.IdFile, fileUpload.IdJersey);
+            "Procesando archivo {FileId} encolado en {EnqueuedAt}",
+            fileUpload.IdFile, fileUpload.EnqueuedAt);
 
         using var scope = _serviceProvider.CreateScope();
         var blobService = scope.ServiceProvider.GetRequiredService<IBlobStorageService>();
@@ -104,7 +104,7 @@ public sealed class FileUploadQueueProcessor : BackgroundService
             : _settings.JerseyPatchesBucket;
 
         // Crear la clave del objeto: jerseyId/uniqueFileName
-        var objectKey = $"{fileUpload.IdJersey}/{fileUpload.FileName}";
+        var objectKey = $"{fileUpload.FileName}";
 
         // Subir el archivo a Storj
         await using var fileStream = File.OpenRead(fileUpload.TempFilePath);

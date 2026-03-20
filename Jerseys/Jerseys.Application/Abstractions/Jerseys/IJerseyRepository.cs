@@ -22,14 +22,21 @@ public interface IJerseyRepository
     Task<Jersey?> GetByIdAsync(int idJersey, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Verifica si existe un club con el ID especificado.
+    /// Obtiene o crea un club por nombre. Si el club existe, lo retorna.
+    /// Si no existe, busca la liga en las categorías y crea el club con esa liga.
     /// </summary>
-    Task<bool> ClubExistsAsync(int idClub, CancellationToken cancellationToken = default);
+    Task<(int IdClub, string ClubName)> GetOrCreateClubAsync(
+        string clubName,
+        IReadOnlyCollection<string> categories,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Obtiene el nombre de un club por su ID.
+    /// Obtiene los IDs de las tallas por sus símbolos.
+    /// Lanza InvalidOperationException si algún símbolo no existe.
     /// </summary>
-    Task<string?> GetClubNameAsync(int idClub, CancellationToken cancellationToken = default);
+    Task<List<int>> GetSizeIdsBySymbolsAsync(
+        IReadOnlyCollection<string> symbols,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Crea las relaciones entre un jersey y sus tallas.

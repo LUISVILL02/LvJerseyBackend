@@ -13,9 +13,9 @@ public sealed class CreateJerseyRequest
     public string Name { get; set; } = default!;
 
     /// <summary>
-    /// ID del club al que pertenece el jersey.
+    /// Nombre del club al que pertenece el jersey.
     /// </summary>
-    public int IdClub { get; set; }
+    public string ClubName { get; set; } = default!;
 
     /// <summary>
     /// Precio del jersey.
@@ -38,9 +38,9 @@ public sealed class CreateJerseyRequest
     public string Sex { get; set; } = default!;
 
     /// <summary>
-    /// IDs de las tallas disponibles para este jersey.
+    /// Símbolos de las tallas disponibles para este jersey (ej: S, M, L, XL).
     /// </summary>
-    public List<int> SizeIds { get; set; } = new();
+    public List<string> SizeSymbols { get; set; } = new();
 
     /// <summary>
     /// Peso en kilogramos.

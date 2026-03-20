@@ -13,6 +13,7 @@ namespace Jerseys.Application.Commands.CreateJersey;
 
 public class CreateJerseyCommandHandler(
     IJerseyRepository jerseyRepository,
+    ICategoryRepository categoryRepository,
     IPatchRepository patchRepository,
     IFileRepository fileRepository,
     IFileUploadQueue fileUploadQueue,
@@ -20,18 +21,15 @@ public class CreateJerseyCommandHandler(
 {
     public async Task<int> HandleAsync(CreateJerseyCommand command)
     {
-        // 1. Validar que el club existe y obtener su nombre
-        var clubName = await jerseyRepository.GetClubNameAsync(command.IdClub);
-        if (clubName is null)
-        {
-            throw new InvalidOperationException($"El club con ID {command.IdClub} no existe.");
-        }
+        var (idClub, clubName) = await jerseyRepository.GetOrCreateClubAsync(
+            command.ClubName, command.Categories);
 
-        // 2. Crear la entidad Jersey
+        var sizeIds = await jerseyRepository.GetSizeIdsBySymbolsAsync(command.SizeSymbols);
+
         var jersey = new Jersey
         {
             Name = command.Name,
-            IdClub = command.IdClub,
+            IdClub = idClub,
             ClubName = clubName,
             Type = command.Type,
             Sex = command.Sex,
@@ -42,23 +40,28 @@ public class CreateJerseyCommandHandler(
             Stock = command.Stock
         };
 
-        // 3. Guardar el jersey en la base de datos
         var createdJersey = await jerseyRepository.CreateAsync(jersey);
         var jerseyId = createdJersey.IdJersey;
 
         logger.LogInformation("Jersey creado con ID: {JerseyId}", jerseyId);
 
-        // 4. Crear relaciones con las tallas
-        if (command.SizeIds.Count > 0)
+        var categoryIds = new List<int>();
+        foreach (var categoryName in command.Categories)
         {
-            await jerseyRepository.CreateSizeJerseysAsync(jerseyId, command.SizeIds);
-            logger.LogInformation("Tallas asociadas al jersey {JerseyId}: {SizeIds}", jerseyId, string.Join(", ", command.SizeIds));
+            var category = await categoryRepository.GetOrCreateAsync(categoryName);
+            categoryIds.Add(category.IdCategory);
+        }
+        await categoryRepository.CreateCategoriesJerseyAsync(jerseyId, categoryIds);
+        logger.LogInformation("Categorías asociadas al jersey {JerseyId}: {Categories}", jerseyId, string.Join(", ", command.Categories));
+
+        if (sizeIds.Count > 0)
+        {
+            await jerseyRepository.CreateSizeJerseysAsync(jerseyId, sizeIds);
+            logger.LogInformation("Tallas asociadas al jersey {JerseyId}: {SizeSymbols}", jerseyId, string.Join(", ", command.SizeSymbols));
         }
 
-        // 5. Procesar imágenes del jersey
         await ProcessImagesAsync(command.Images, jerseyId);
 
-        // 6. Procesar patches (crear entidades Patch, relaciones y archivos)
         await ProcessPatchesAsync(command.Patches, jerseyId);
 
         return jerseyId;
@@ -79,8 +82,7 @@ public class CreateJerseyCommandHandler(
             try
             {
                 var createdFile = await SaveFileAndEnqueueAsync(
-                    fileDto, 
-                    jerseyId, 
+                    fileDto,
                     tempDirectory, 
                     "images");
 
@@ -133,8 +135,7 @@ public class CreateJerseyCommandHandler(
 
                 // 3. Procesar la imagen del patch
                 var createdFile = await SaveFileAndEnqueueAsync(
-                    patchDto.Image, 
-                    jerseyId, 
+                    patchDto.Image,
                     tempDirectory, 
                     "patches");
 
@@ -157,7 +158,6 @@ public class CreateJerseyCommandHandler(
 
     private async Task<File> SaveFileAndEnqueueAsync(
         ImageUploadDto fileDto,
-        int jerseyId,
         string tempDirectory,
         string containerType)
     {
@@ -176,7 +176,6 @@ public class CreateJerseyCommandHandler(
         {
             Url = string.Empty, // Se actualizará cuando se suba a Storj
             Name = fileDto.FileName,
-            IdJersey = jerseyId,
             ProcessingStatus = FileProcessingStatus.Pending,
             ContainerType = containerType,
             TempFilePath = tempFilePath,
@@ -190,7 +189,6 @@ public class CreateJerseyCommandHandler(
         var queueMessage = new FileUploadMessage
         {
             IdFile = createdFile.IdFile,
-            IdJersey = jerseyId,
             TempFilePath = tempFilePath,
             FileName = uniqueFileName,
             ContentType = fileDto.ContentType,
