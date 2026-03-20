@@ -6,10 +6,10 @@ public sealed class Club
 
     public string Name { get; init; } = null!;
 
-    public int IdLeague { get; init; }
+    public int? IdLeague { get; init; }
 
-    // Navegación
-    public League League { get; init; } = null!;
+    public League? League { get; init; }
+
     public ICollection<Jersey> Jerseys { get; init; } = new List<Jersey>();
 }
 

@@ -23,6 +23,7 @@ public sealed record JerseyDetailResponse
     public string? Description { get; init; }
     public required bool IsFavorite { get; init; }
     public IReadOnlyList<JerseyReviewResponse>? Reviews { get; init; }
+    public DateTime? ImageUrlExpiresAt { get; init; }
 }
 
 /// <summary>

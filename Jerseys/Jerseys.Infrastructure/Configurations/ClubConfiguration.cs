@@ -23,7 +23,6 @@ public class ClubConfiguration : IEntityTypeConfiguration<Club>
             .HasColumnName("name");
 
         builder.Property(e => e.IdLeague)
-            .IsRequired()
             .HasColumnName("id_league");
 
         // Relación con Jersey

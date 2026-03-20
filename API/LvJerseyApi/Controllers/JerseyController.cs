@@ -67,11 +67,12 @@ public class JerseyController(ISender sender) : ControllerBase
     /// El orden de PatchImages debe coincidir con el orden en PatchMetadata.
     /// </remarks>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "ADMIN")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(CreateJerseyResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CreateJersey([FromForm] CreateJerseyRequest request)
     {
         // Convertir IFormFile a ImageUploadDto para imágenes del jersey
@@ -143,10 +144,10 @@ public class JerseyController(ISender sender) : ControllerBase
 
         var command = new CreateJerseyCommand(
             Name: request.Name,
-            IdClub: request.IdClub,
+            ClubName: request.ClubName,
             Type: request.Type,
             Sex: request.Sex,
-            SizeIds: request.SizeIds,
+            SizeSymbols: request.SizeSymbols,
             Weight: request.Weight,
             Brand: request.Brand,
             Season: request.Season,

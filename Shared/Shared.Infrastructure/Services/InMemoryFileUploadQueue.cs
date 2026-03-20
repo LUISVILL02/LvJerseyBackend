@@ -41,8 +41,8 @@ public sealed class InMemoryFileUploadQueue : IFileUploadQueue
         Interlocked.Increment(ref _count);
 
         _logger.LogDebug(
-            "Mensaje encolado para archivo {FileId}, jersey {JerseyId}. Total en cola: {Count}",
-            message.IdFile, message.IdJersey, _count);
+            "Mensaje encolado para archivo {FileId}. Total en cola: {Count}",
+            message.IdFile, _count);
     }
 
     public async IAsyncEnumerable<FileUploadMessage> DequeueAllAsync(

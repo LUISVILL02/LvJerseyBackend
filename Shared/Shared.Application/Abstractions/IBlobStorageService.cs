@@ -52,4 +52,18 @@ public interface IBlobStorageService
         string bucketName,
         string objectKey,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Genera una URL firmada (presigned) para acceso temporal a un objeto.
+    /// </summary>
+    /// <param name="bucketName">Nombre del bucket</param>
+    /// <param name="objectKey">Clave del objeto</param>
+    /// <param name="expiration">Tiempo de expiración de la URL</param>
+    /// <param name="cancellationToken">Token de cancelación</param>
+    /// <returns>URL firmada para acceso temporal</returns>
+    Task<string> GetPresignedUrlAsync(
+        string bucketName,
+        string objectKey,
+        TimeSpan expiration,
+        CancellationToken cancellationToken = default);
 }

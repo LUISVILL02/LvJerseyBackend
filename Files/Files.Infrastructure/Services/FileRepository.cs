@@ -134,4 +134,21 @@ public class FileRepository(ApplicationDbContext context) : IFileRepository
         
         return fileList;
     }
+
+    public async Task<Dictionary<int, string>> GetFirstImageUrlsByJerseyIdsAsync(
+        IEnumerable<int> jerseyIds, 
+        CancellationToken cancellationToken = default)
+    {
+        var fileJerseys = await context.Set<FileJersey>()
+            .Include(fj => fj.File)
+            .Where(fj => jerseyIds.Contains(fj.IdJersey))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        return fileJerseys
+            .GroupBy(fj => fj.IdJersey)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(fj => fj.File.CreatedAt)
+                    .FirstOrDefault()?.File.Url ?? string.Empty);
+    }
 }

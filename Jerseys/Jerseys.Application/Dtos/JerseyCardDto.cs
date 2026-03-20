@@ -36,4 +36,9 @@ public sealed record JerseyCardDto
     /// Indica si el jersey está marcado como favorito
     /// </summary>
     public required bool IsFavorite { get; init; }
+
+    /// <summary>
+    /// Fecha de expiración de la URL firmada de la imagen
+    /// </summary>
+    public DateTime? ImageUrlExpiresAt { get; init; }
 }
