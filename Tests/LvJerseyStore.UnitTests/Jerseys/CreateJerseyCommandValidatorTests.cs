@@ -19,10 +19,10 @@ public class CreateJerseyCommandValidatorTests
     {
         return new CreateJerseyCommand(
             Name: "Real Madrid Home 24/25",
-            IdClub: 1,
+            ClubName: "Real Madrid",
             Type: "Player",
             Sex: "Male",
-            SizeIds: [1, 2, 3],
+            SizeSymbols: ["S", "M", "L"],
             Weight: 0.3m,
             Brand: "Adidas",
             Season: "24/25",

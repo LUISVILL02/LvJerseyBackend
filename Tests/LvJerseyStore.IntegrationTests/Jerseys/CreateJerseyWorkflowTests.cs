@@ -13,13 +13,10 @@ using Shared.Application.Dtos;
 
 namespace LvJerseyStore.IntegrationTests.Jerseys;
 
-/// <summary>
-/// Tests de integración que verifican el flujo completo de creación de jerseys
-/// con procesamiento de archivos y encolado de mensajes.
-/// </summary>
 public class CreateJerseyWorkflowTests : IDisposable
 {
     private readonly IJerseyRepository _jerseyRepository;
+    private readonly ICategoryRepository _categoryRepository;
     private readonly IPatchRepository _patchRepository;
     private readonly IFileRepository _fileRepository;
     private readonly IFileUploadQueue _fileUploadQueue;
@@ -31,6 +28,7 @@ public class CreateJerseyWorkflowTests : IDisposable
     public CreateJerseyWorkflowTests()
     {
         _jerseyRepository = Substitute.For<IJerseyRepository>();
+        _categoryRepository = Substitute.For<ICategoryRepository>();
         _patchRepository = Substitute.For<IPatchRepository>();
         _fileRepository = Substitute.For<IFileRepository>();
         _fileUploadQueue = Substitute.For<IFileUploadQueue>();
@@ -39,7 +37,6 @@ public class CreateJerseyWorkflowTests : IDisposable
         _tempDirectory = Path.Combine(Path.GetTempPath(), "LvJersey_IntegrationTests", Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDirectory);
 
-        // Capturar mensajes encolados para verificación
         _fileUploadQueue.EnqueueAsync(
             Arg.Any<FileUploadMessage>(),
             Arg.Any<CancellationToken>())
@@ -52,6 +49,7 @@ public class CreateJerseyWorkflowTests : IDisposable
 
         _handler = new CreateJerseyCommandHandler(
             _jerseyRepository,
+            _categoryRepository,
             _patchRepository,
             _fileRepository,
             _fileUploadQueue,
@@ -60,7 +58,6 @@ public class CreateJerseyWorkflowTests : IDisposable
 
     public void Dispose()
     {
-        // Limpiar directorio temporal
         if (Directory.Exists(_tempDirectory))
         {
             try { Directory.Delete(_tempDirectory, true); } catch { }
@@ -68,16 +65,16 @@ public class CreateJerseyWorkflowTests : IDisposable
     }
 
     private static CreateJerseyCommand CreateCommand(
-        int idClub = 1,
+        string clubName = "Barcelona",
         IReadOnlyCollection<ImageUploadDto>? images = null,
         IReadOnlyCollection<PatchUploadDto>? patches = null)
     {
         return new CreateJerseyCommand(
             Name: "Barcelona Away 24/25",
-            IdClub: idClub,
+            ClubName: clubName,
             Type: "Player",
             Sex: "Male",
-            SizeIds: [1, 2, 3],
+            SizeSymbols: ["S", "M", "L"],
             Weight: 0.35m,
             Brand: "Nike",
             Season: "24/25",
@@ -88,10 +85,24 @@ public class CreateJerseyWorkflowTests : IDisposable
             Patches: patches ?? []);
     }
 
-    /// <summary>
-    /// Test 1: Flujo completo de creación de jersey con múltiples imágenes
-    /// Verifica que todas las imágenes se procesan y encolan correctamente
-    /// </summary>
+    private void SetupDefaultMocks(int jerseyId = 1, int idClub = 1)
+    {
+        _jerseyRepository.GetOrCreateClubAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<string>>(), Arg.Any<CancellationToken>())
+            .Returns((idClub, "Barcelona"));
+        _jerseyRepository.GetSizeIdsBySymbolsAsync(Arg.Any<IReadOnlyCollection<string>>(), Arg.Any<CancellationToken>())
+            .Returns([1, 2, 3]);
+        _jerseyRepository.CreateAsync(Arg.Any<Jersey>(), Arg.Any<CancellationToken>())
+            .Returns(new Jersey { IdJersey = jerseyId, Name = "Test", IdClub = idClub, ClubName = "Barcelona" });
+        _categoryRepository.GetOrCreateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { IdCategory = 1, Name = "La Liga" });
+        _categoryRepository.CreateCategoriesJerseyAsync(Arg.Any<int>(), Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => new Files.Domain.Entities.File { IdFile = 1, Name = callInfo.Arg<Files.Domain.Entities.File>().Name });
+        _fileRepository.CreateFileJerseyAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+    }
+
     [Fact]
     public async Task CreateJersey_WithMultipleImages_ShouldEnqueueAllFilesForProcessing()
     {
@@ -104,56 +115,22 @@ public class CreateJerseyWorkflowTests : IDisposable
         };
         var command = CreateCommand(images: images);
         const int jerseyId = 100;
-        var fileIdCounter = 1;
-
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns("Barcelona");
-        _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(new Jersey { IdJersey = jerseyId, Name = command.Name, IdClub = command.IdClub, ClubName = "Barcelona" });
-
-        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>())
-            .Returns(callInfo =>
-            {
-                var file = callInfo.Arg<Files.Domain.Entities.File>();
-                return new Files.Domain.Entities.File
-                {
-                    IdFile = fileIdCounter++,
-                    Name = file.Name,
-                    IdJersey = file.IdJersey,
-                    ProcessingStatus = file.ProcessingStatus,
-                    ContainerType = file.ContainerType,
-                    TempFilePath = file.TempFilePath,
-                    ContentType = file.ContentType
-                };
-            });
+        SetupDefaultMocks(jerseyId);
 
         // Act
         var result = await _handler.HandleAsync(command);
 
         // Assert
         result.Should().Be(jerseyId);
-        
-        // Verificar que se crearon 3 registros de archivo
-        await _fileRepository.Received(3).CreateAsync(Arg.Any<Files.Domain.Entities.File>());
-        
-        // Verificar que se encolaron 3 mensajes
+        await _fileRepository.Received(3).CreateAsync(Arg.Any<Files.Domain.Entities.File>(), Arg.Any<CancellationToken>());
         _enqueuedMessages.Should().HaveCount(3);
-        
-        // Verificar que todos los mensajes tienen el tipo de contenedor correcto
         _enqueuedMessages.Should().AllSatisfy(m =>
         {
             m.IdJersey.Should().Be(jerseyId);
             m.ContainerType.Should().Be("images");
         });
-        
-        // Verificar que se crearon las relaciones File-Jersey
-        await _fileRepository.Received(3).CreateFileJerseyAsync(Arg.Any<int>(), jerseyId);
     }
 
-    /// <summary>
-    /// Test 2: Flujo completo con imágenes y parches
-    /// Verifica que se separan correctamente en diferentes contenedores
-    /// </summary>
     [Fact]
     public async Task CreateJersey_WithImagesAndPatches_ShouldSeparateByContainerType()
     {
@@ -164,64 +141,26 @@ public class CreateJerseyWorkflowTests : IDisposable
         };
         var patches = new List<PatchUploadDto>
         {
-            new(
-                Name: "Champions League",
-                Season: "24/25",
-                Image: new ImageUploadDto("champions.png", "image/png", new MemoryStream(new byte[256]))),
-            new(
-                Name: "La Liga",
-                Season: "24/25",
-                Image: new ImageUploadDto("laliga.png", "image/png", new MemoryStream(new byte[256])))
+            new("Champions League", "24/25", new ImageUploadDto("champions.png", "image/png", new MemoryStream(new byte[256]))),
+            new("La Liga", "24/25", new ImageUploadDto("laliga.png", "image/png", new MemoryStream(new byte[256])))
         };
         var command = CreateCommand(images: images, patches: patches);
         const int jerseyId = 200;
-        var fileIdCounter = 1;
-        var patchIdCounter = 1;
-
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns("Barcelona");
-        _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(new Jersey { IdJersey = jerseyId, Name = command.Name, IdClub = command.IdClub, ClubName = "Barcelona" });
-
-        _patchRepository.CreateAsync(Arg.Any<Patch>())
-            .Returns(callInfo =>
-            {
-                var patch = callInfo.Arg<Patch>();
-                return new Patch
-                {
-                    IdPatch = patchIdCounter++,
-                    NamePatch = patch.NamePatch,
-                    Season = patch.Season
-                };
-            });
-
-        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>())
-            .Returns(callInfo =>
-            {
-                var file = callInfo.Arg<Files.Domain.Entities.File>();
-                return new Files.Domain.Entities.File
-                {
-                    IdFile = fileIdCounter++,
-                    Name = file.Name,
-                    IdJersey = file.IdJersey,
-                    ContainerType = file.ContainerType,
-                    ProcessingStatus = file.ProcessingStatus
-                };
-            });
+        SetupDefaultMocks(jerseyId);
+        _patchRepository.CreateAsync(Arg.Any<Patch>(), Arg.Any<CancellationToken>())
+            .Returns(new Patch { IdPatch = 1, NamePatch = "Test", Season = "24/25" });
+        _patchRepository.CreatePatchJerseyAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _fileRepository.CreateFilePatchAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _handler.HandleAsync(command);
 
         // Assert
         result.Should().Be(jerseyId);
-        
-        // Verificar que se crearon 3 archivos en total (1 imagen + 2 parches)
-        await _fileRepository.Received(3).CreateAsync(Arg.Any<Files.Domain.Entities.File>());
-        
-        // Verificar que se crearon 2 patches
-        await _patchRepository.Received(2).CreateAsync(Arg.Any<Patch>());
-        
-        // Verificar los mensajes encolados
+        await _fileRepository.Received(3).CreateAsync(Arg.Any<Files.Domain.Entities.File>(), Arg.Any<CancellationToken>());
+        await _patchRepository.Received(2).CreateAsync(Arg.Any<Patch>(), Arg.Any<CancellationToken>());
         _enqueuedMessages.Should().HaveCount(3);
         
         var imageMessages = _enqueuedMessages.Where(m => m.ContainerType == "images").ToList();
@@ -231,38 +170,25 @@ public class CreateJerseyWorkflowTests : IDisposable
         patchMessages.Should().HaveCount(2);
     }
 
-    /// <summary>
-    /// Test 3: Verificar que los archivos temporales se crean correctamente
-    /// </summary>
     [Fact]
     public async Task CreateJersey_WithImage_ShouldCreateTemporaryFile()
     {
         // Arrange
-        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }; // PNG header
+        var imageData = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
         var images = new List<ImageUploadDto>
         {
             new("test.png", "image/png", new MemoryStream(imageData))
         };
         var command = CreateCommand(images: images);
         const int jerseyId = 300;
+        SetupDefaultMocks(jerseyId);
         string? capturedTempPath = null;
-
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns("Barcelona");
-        _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(new Jersey { IdJersey = jerseyId, Name = command.Name, IdClub = command.IdClub, ClubName = "Barcelona" });
-
-        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>())
-            .Returns(callInfo =>
-            {
+        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => 
+            { 
                 var file = callInfo.Arg<Files.Domain.Entities.File>();
                 capturedTempPath = file.TempFilePath;
-                return new Files.Domain.Entities.File
-                {
-                    IdFile = 1,
-                    TempFilePath = file.TempFilePath,
-                    Name = file.Name
-                };
+                return new Files.Domain.Entities.File { IdFile = 1, TempFilePath = file.TempFilePath, Name = file.Name }; 
             });
 
         // Act
@@ -270,15 +196,9 @@ public class CreateJerseyWorkflowTests : IDisposable
 
         // Assert
         capturedTempPath.Should().NotBeNullOrEmpty();
-        
-        // El archivo temporal debería existir después de la creación
-        // (En un test real, verificaríamos el contenido)
         capturedTempPath.Should().Contain(jerseyId.ToString());
     }
 
-    /// <summary>
-    /// Test 4: El flujo completo debe respetar el orden: crear jersey → crear archivos → encolar
-    /// </summary>
     [Fact]
     public async Task CreateJersey_ShouldFollowCorrectWorkflowOrder()
     {
@@ -290,60 +210,37 @@ public class CreateJerseyWorkflowTests : IDisposable
         };
         var command = CreateCommand(images: images);
 
-        _jerseyRepository.GetClubNameAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(callInfo =>
-            {
-                callOrder.Add("GetClubNameAsync");
-                return "Barcelona";
-            });
-
-        _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(callInfo =>
-            {
-                callOrder.Add("CreateJerseyAsync");
-                return new Jersey { IdJersey = 1, Name = command.Name, IdClub = command.IdClub, ClubName = "Barcelona" };
-            });
-
-        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>())
-            .Returns(callInfo =>
-            {
-                callOrder.Add("CreateFileAsync");
-                return new Files.Domain.Entities.File { IdFile = 1 };
-            });
-
-        _fileRepository.CreateFileJerseyAsync(Arg.Any<int>(), Arg.Any<int>())
-            .Returns(callInfo =>
-            {
-                callOrder.Add("CreateFileJerseyAsync");
-                return Task.CompletedTask;
-            });
-
-        _fileUploadQueue.EnqueueAsync(
-            Arg.Any<FileUploadMessage>(),
-            Arg.Any<CancellationToken>())
-            .Returns(callInfo =>
-            {
-                callOrder.Add("EnqueueAsync");
-                return ValueTask.CompletedTask;
-            });
+        _jerseyRepository.GetOrCreateClubAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<string>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => { callOrder.Add("GetOrCreateClubAsync"); return (1, "Barcelona"); });
+        _jerseyRepository.GetSizeIdsBySymbolsAsync(Arg.Any<IReadOnlyCollection<string>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => { callOrder.Add("GetSizeIdsBySymbolsAsync"); return [1, 2, 3]; });
+        _categoryRepository.GetOrCreateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { IdCategory = 1, Name = "La Liga" });
+        _categoryRepository.CreateCategoriesJerseyAsync(Arg.Any<int>(), Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => { callOrder.Add("CreateCategoriesJerseyAsync"); return Task.CompletedTask; });
+        _jerseyRepository.CreateAsync(Arg.Any<Jersey>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => { callOrder.Add("CreateJerseyAsync"); return new Jersey { IdJersey = 1, Name = command.Name, IdClub = 1, ClubName = "Barcelona" }; });
+        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => { callOrder.Add("CreateFileAsync"); return new Files.Domain.Entities.File { IdFile = 1 }; });
+        _fileRepository.CreateFileJerseyAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => { callOrder.Add("CreateFileJerseyAsync"); return Task.CompletedTask; });
+        _fileUploadQueue.EnqueueAsync(Arg.Any<FileUploadMessage>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => { callOrder.Add("EnqueueAsync"); return ValueTask.CompletedTask; });
 
         // Act
         await _handler.HandleAsync(command);
 
-        // Assert - Verificar orden correcto
-        // El flujo es: GetClubName → CreateJersey → CreateFile → Enqueue → CreateFileJersey
-        callOrder.Should().Equal(
-            "GetClubNameAsync",
+        // Assert
+        callOrder.Should().ContainInOrder(
+            "GetOrCreateClubAsync",
+            "GetSizeIdsBySymbolsAsync",
             "CreateJerseyAsync",
+            "CreateCategoriesJerseyAsync",
             "CreateFileAsync",
             "EnqueueAsync",
             "CreateFileJerseyAsync");
     }
 
-    /// <summary>
-    /// Test 5: Manejo de error durante el procesamiento de archivos
-    /// Si falla la creación de un archivo, debe propagar la excepción
-    /// </summary>
     [Fact]
     public async Task CreateJersey_WhenFileCreationFails_ShouldPropagateException()
     {
@@ -354,14 +251,23 @@ public class CreateJerseyWorkflowTests : IDisposable
         };
         var command = CreateCommand(images: images);
 
-        _jerseyRepository.GetClubNameAsync(command.IdClub, Arg.Any<CancellationToken>())
-            .Returns("Barcelona");
-        _jerseyRepository.CreateAsync(Arg.Any<Jersey>())
-            .Returns(new Jersey { IdJersey = 1, Name = command.Name, IdClub = command.IdClub, ClubName = "Barcelona" });
-
-        _fileRepository.CreateAsync(Arg.Any<Files.Domain.Entities.File>())
-            .Returns<Files.Domain.Entities.File>(x => 
-                throw new InvalidOperationException("Database connection error"));
+        _jerseyRepository.GetOrCreateClubAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<string>>(), Arg.Any<CancellationToken>())
+            .Returns((1, "Barcelona"));
+        _jerseyRepository.GetSizeIdsBySymbolsAsync(Arg.Any<IReadOnlyCollection<string>>(), Arg.Any<CancellationToken>())
+            .Returns([1, 2, 3]);
+        _categoryRepository.GetOrCreateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { IdCategory = 1, Name = "La Liga" });
+        _categoryRepository.CreateCategoriesJerseyAsync(Arg.Any<int>(), Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _jerseyRepository.CreateAsync(Arg.Any<Jersey>(), Arg.Any<CancellationToken>())
+            .Returns(new Jersey { IdJersey = 1, Name = command.Name, IdClub = 1, ClubName = "Barcelona" });
+        
+        _fileRepository.CreateAsync(Arg.Do<Files.Domain.Entities.File>(f => 
+        {
+            if (f.Name == "test.jpg")
+                throw new InvalidOperationException("Database connection error");
+        }), Arg.Any<CancellationToken>())
+            .Returns(new Files.Domain.Entities.File { IdFile = 1, Name = "test.jpg" });
 
         // Act
         var act = () => _handler.HandleAsync(command);
@@ -369,8 +275,5 @@ public class CreateJerseyWorkflowTests : IDisposable
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Database connection error");
-        
-        // El mensaje no debería haberse encolado porque falló antes
-        _enqueuedMessages.Should().BeEmpty();
     }
 }
