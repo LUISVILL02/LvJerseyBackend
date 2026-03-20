@@ -64,4 +64,6 @@ public interface IFileRepository
     /// Crea múltiples archivos en una transacción.
     /// </summary>
     Task<IReadOnlyList<File>> CreateManyAsync(IEnumerable<File> files, CancellationToken cancellationToken = default);
+
+    Task<Dictionary<int, string>> GetFirstImageUrlsByJerseyIdsAsync(IEnumerable<int> jerseyIds, CancellationToken cancellationToken = default);
 }
