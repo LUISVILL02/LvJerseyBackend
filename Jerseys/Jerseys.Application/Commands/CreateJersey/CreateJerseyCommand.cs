@@ -5,10 +5,10 @@ namespace Jerseys.Application.Commands.CreateJersey;
 
 public sealed record CreateJerseyCommand(
     string Name,
-    int IdClub,
+    string ClubName,
     string Type,
     string Sex,
-    IReadOnlyCollection<int> SizeIds,
+    IReadOnlyCollection<string> SizeSymbols,
     decimal Weight,
     string Brand,
     string Season,
