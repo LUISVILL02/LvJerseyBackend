@@ -1,12 +1,34 @@
-﻿services:
-  authentication:
-    image: authentication
-    build:
-      context: .
-      dockerfile: Authentication/Dockerfile
+services:
+  db:
+    image: postgres:18
+    container_name: lvjersey-db
+    environment:
+      POSTGRES_DB: lvjerseydb
+      POSTGRES_USER: lvadmin
+      POSTGRES_PASSWORD: lvjerseypass
+    ports:
+      - "5431:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lvadmin -d lvjerseydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-  users:
-    image: users
+  api:
+    image: lvjersey-api
+    container_name: lvjersey-api
     build:
       context: .
-      dockerfile: Users/Dockerfile
+      dockerfile: API/LvJerseyApi/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - /tmp/LvJerseyUploads:/tmp/LvJersey
+
+volumes:
+  postgres_data:
