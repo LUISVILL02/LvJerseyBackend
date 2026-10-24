@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LvJerseyApi.Controllers;
 
 [ApiController]
-[Route("api/v0.0.1/health")]
+[Route("api/v0.0.1/[controller]")]
 public class HealthController : ControllerBase
 {
     [HttpGet]
