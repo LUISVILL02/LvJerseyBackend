@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
             // EF Core configuration
         });
         
+        services.AddScoped<IUserContextService, HttpContextUserContextService>();
         services.AddScoped<IEmailSender, ResendEmailSender>();
         
         services.AddResend(options =>
