@@ -26,5 +26,8 @@ public sealed class HttpContextUserContextService(IHttpContextAccessor _httpCont
 
     public string? GetClaim(string claimType)
         => _httpContextAccessor.HttpContext?.User?.FindFirst(claimType)?.Value;
+
+    public string? GetUserEmail()
+        => GetClaim("email");
 }
 
