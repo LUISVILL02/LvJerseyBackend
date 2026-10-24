@@ -4,7 +4,7 @@ using Authentication.Application.Dtos;
 using Authentication.Application.Dtos.Users;
 using Authentication.Domain.Exceptions;
 using Microsoft.AspNetCore.Identity;
-using SendGrid.Helpers.Errors.Model;
+
 using Shared.Application.Abstractions;
 
 namespace Authentication.Application.Commands.Login;
@@ -22,7 +22,7 @@ public class LoginCommandHandler(IJwtUtil jwt, IUserAuthRepository userRepo) : I
         
         if(passwordHash == PasswordVerificationResult.Failed) throw new UserFoundException("Credenciales inválidos");
 
-        if (!user.EmailConfirmed) throw new BadRequestException("Coreo no confirmado");
+        if (!user.EmailConfirmed) throw new UserFoundException("Correo no confirmado");
         
         var userJwtInfo = new JwtUserInfo
         (
