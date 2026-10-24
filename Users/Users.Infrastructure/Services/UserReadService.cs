@@ -6,7 +6,7 @@ using Authentication.Domain.Exceptions;
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SendGrid.Helpers.Errors.Model;
+
 using Shared.Infrastructure.Data;
 
 namespace Users.Infrastructure.Services;
@@ -131,7 +131,7 @@ public class UserReadService(ApplicationDbContext context) : IUserAuthRepository
         var user = await context.Set<User>()
             .FindAsync(idUser);
 
-        if (user is null) throw new NotFoundException("El usuario no existe");
+        if (user is null) throw new InvalidOperationException("El usuario no existe");
 
         var emailVerification = new EmailVerification
         {
@@ -157,7 +157,7 @@ public class UserReadService(ApplicationDbContext context) : IUserAuthRepository
                     .Where(e => e.Code == code && e.UserId == idUser))
             .FirstOrDefaultAsync(u => u.IdUser == idUser);
 
-        if(user is null) throw new NotFoundException("El usuario no existe");
+        if(user is null) throw new InvalidOperationException("El usuario no existe");
         
         context.Set<EmailVerification>().Remove(emailVerification);
         user.EmailConfirmed = true;
