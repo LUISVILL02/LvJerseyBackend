@@ -17,7 +17,7 @@ public class JerseyDetailQueryHandler(
     IOptions<StorageSettings> storageSettings)
     : IQueryHandler<JerseyDetailQuery, JerseyDetailResponse?>
 {
-    private const decimal PatchPriceUsd = 1.00m;
+    private const decimal PatchPriceUsd = 5000m; // Esto debe venir de la base de datos
     private static readonly string[] StandardSizes = ["S", "M", "L", "XL", "2XL"];
 
     public async Task<JerseyDetailResponse?> HandleAsync(JerseyDetailQuery query)

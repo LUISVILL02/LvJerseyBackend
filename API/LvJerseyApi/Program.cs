@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Orders.Infrastructure.DependencyInjection;
+using Payments.Infrastructure.DependencyInjection;
 using Reviews.Infrastructure.DependencyInjection;
 using Shared.Infrastructure.DependencyInjection;
 using Users.Infrastructure.DependencyInjection;
@@ -47,6 +49,8 @@ builder.Services.AddFilesModule();
 builder.Services.AddUsersModule();
 builder.Services.AddJerseysModule();
 builder.Services.AddReviewsModule();
+builder.Services.AddOrdersModule();
+builder.Services.AddPaymentsModule();
 
 
 builder.Services.AddControllers();

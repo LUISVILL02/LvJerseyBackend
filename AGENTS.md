@@ -174,6 +174,49 @@ public class AuthController(ISender sender) : ControllerBase
 
 ---
 
+---
+
+## Pipeline de 3 Subagentes (Orquestación)
+
+Usa este pipeline para tareas complejas. Los 3 subagentes trabajan en secuencia: **Analizar → Ejecutar → Testear**.
+
+### Cómo invocar el pipeline completo
+
+Cuando recibas una tarea del usuario, ejecuta la secuencia cargando cada skill con `skill` tool y lanzando un subagente via `Task` tool:
+
+```
+Paso 1: Cargar skill subagent-analyst → Task subagent_type="explore" con el plan
+Paso 2: Cargar skill subagent-executor → Task subagent_type="general" con el plan del paso 1
+Paso 3: Cargar skill subagent-tester → Task subagent_type="general" con la impl del paso 2
+```
+
+### Agente 1 — Analyst (Planificador)
+- **Skill**: `subagent-analyst`
+- **Subagent type**: `explore` (solo lectura)
+- **Output**: Plan detallado con archivos a crear/modificar, pasos ordenados, dependencias
+- **NO** modifica ningún archivo
+
+### Agente 2 — Executor (Implementador)
+- **Skill**: `subagent-executor`
+- **Subagent type**: `general` (lectura/escritura)
+- **Input**: Plan del Analyst
+- **Output**: Archivos creados/modificados, verificación de compilación
+
+### Agente 3 — Tester (Probador)
+- **Skill**: `subagent-tester`
+- **Subagent type**: `general` (lectura/escritura)
+- **Input**: Plan del Analyst + implementación del Executor
+- **Output**: Tests unitarios + integración, verificación de `dotnet test`
+
+### Verificación final (orquestador)
+Después de que los 3 agentes completen:
+```bash
+dotnet build LvJerseyStore.sln
+dotnet test
+```
+
+---
+
 ## Important Notes
 
 1. **No test projects exist** - Consider adding when implementing new features
