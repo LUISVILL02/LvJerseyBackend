@@ -83,8 +83,9 @@ public class CreateJerseyCommandHandler(
             {
                 var createdFile = await SaveFileAndEnqueueAsync(
                     fileDto,
-                    tempDirectory, 
-                    "images");
+                    tempDirectory,
+                    "images",
+                    jerseyId);
 
                 // Crear la relación File-Jersey
                 await fileRepository.CreateFileJerseyAsync(createdFile.IdFile, jerseyId);
@@ -136,8 +137,9 @@ public class CreateJerseyCommandHandler(
                 // 3. Procesar la imagen del patch
                 var createdFile = await SaveFileAndEnqueueAsync(
                     patchDto.Image,
-                    tempDirectory, 
-                    "patches");
+                    tempDirectory,
+                    "patches",
+                    jerseyId);
 
                 // 4. Crear la relación File-Patch
                 await fileRepository.CreateFilePatchAsync(createdFile.IdFile, createdPatch.IdPatch);
@@ -159,7 +161,8 @@ public class CreateJerseyCommandHandler(
     private async Task<File> SaveFileAndEnqueueAsync(
         ImageUploadDto fileDto,
         string tempDirectory,
-        string containerType)
+        string containerType,
+        int jerseyId)
     {
         // Generar nombre único para el archivo temporal
         var uniqueFileName = $"{Guid.NewGuid()}_{fileDto.FileName}";
@@ -176,6 +179,7 @@ public class CreateJerseyCommandHandler(
         {
             Url = string.Empty, // Se actualizará cuando se suba a Storj
             Name = fileDto.FileName,
+            IdJersey = jerseyId,
             ProcessingStatus = FileProcessingStatus.Pending,
             ContainerType = containerType,
             TempFilePath = tempFilePath,
@@ -189,6 +193,7 @@ public class CreateJerseyCommandHandler(
         var queueMessage = new FileUploadMessage
         {
             IdFile = createdFile.IdFile,
+            IdJersey = jerseyId,
             TempFilePath = tempFilePath,
             FileName = uniqueFileName,
             ContentType = fileDto.ContentType,

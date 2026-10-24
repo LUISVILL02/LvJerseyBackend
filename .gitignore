@@ -17,6 +17,7 @@ appsettings.Development.json
 .agents/
 skills-lock.json
 nul
+.atl
 
 # HTTP test files
 *.http
