@@ -14,7 +14,7 @@ public class EmailVerificationConfiguration: IEntityTypeConfiguration<EmailVerif
         
         builder.Property(e => e.Id).HasColumnName("id");
         builder.Property(e => e.Code).HasColumnType("character varying").HasColumnName("code");
-        builder.Property(e => e.ExpiryAt).HasColumnType("timestamp with timezone").HasColumnName("expiry_at");
+        builder.Property(e => e.ExpiryAt).HasColumnType("timestamp with time zone").HasColumnName("expiry_at");
         builder.Property(e => e.UserId).HasColumnName("user_id");
         
         builder.HasOne(d => d.User)
