@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Resend;
@@ -34,6 +35,13 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<FileUploadQueueProcessor>();
         
         return services;
+    }
+
+    public static void ApplyMigrations(this IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.EnsureCreated();
     }
 
     public static IServiceCollection AddStorageServices(this IServiceCollection services, IConfiguration configuration)

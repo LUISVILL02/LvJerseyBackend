@@ -16,6 +16,7 @@ using Shared.Infrastructure.DependencyInjection;
 using Users.Infrastructure.DependencyInjection;
 using System.Globalization;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -113,6 +114,8 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+app.Services.ApplyMigrations();
 
 if (app.Environment.IsDevelopment())
 {
