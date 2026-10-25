@@ -27,7 +27,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(e => e.PhoneNumber).HasColumnType("character varying").HasColumnName("phone_number");
         builder.Property(e => e.PostalCode).HasColumnName("postal_code");
         builder.Property(e => e.RefreshToken).HasColumnType("character varying").HasColumnName("refresh_token");
-        builder.Property(e => e.RefreshTokenExpiryTime).HasColumnType("timestamp with timezone").HasColumnName("refresh_token_expiry_time");
+        builder.Property(e => e.RefreshTokenExpiryTime).HasColumnType("timestamp with time zone").HasColumnName("refresh_token_expiry_time");
         builder.Property(e => e.State).HasColumnType("character varying").HasColumnName("state");
         builder.Property(e => e.EmailConfirmed).HasColumnType("bool").HasColumnName("email_confirmed");
 
