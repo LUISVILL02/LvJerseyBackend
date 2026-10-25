@@ -14,4 +14,11 @@ public static class Extension
             options.UseNpgsql(configuration.GetConnectionString("PostgresConnection"));
         });
     }
+
+    public static void ApplyMigrations(this IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.EnsureCreated();
+    }
 }
