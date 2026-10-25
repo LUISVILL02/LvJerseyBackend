@@ -22,6 +22,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 builder.Services.AddInfrastructure(configuration);
+builder.Services.AddSharedInfrastructure(configuration);
 builder.Services.AddAuthenticationModule();
 
 // Configuración de Autenticación JWT
