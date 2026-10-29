@@ -1,5 +1,5 @@
 ﻿
-namespace Shared.Infrastructure.Abstractions;
+namespace Shared.Application.Abstractions;
 
 public interface IQueryHandler<in TQuery, TResult>
 {
