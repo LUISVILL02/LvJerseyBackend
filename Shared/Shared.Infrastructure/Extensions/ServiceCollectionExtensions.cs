@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Application.Abstractions;
-using Shared.Infrastructure.Abstractions;
+using Shared.Application.Abstractions;
 
 namespace Shared.Infrastructure.Extensions;
 

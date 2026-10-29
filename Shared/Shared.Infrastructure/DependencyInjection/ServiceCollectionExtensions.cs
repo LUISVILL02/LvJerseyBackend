@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Resend;
 using Shared.Application.Abstractions;
+using Shared.Application.Abstractions.Implementations;
 using Shared.Application.Settings;
 using Shared.Infrastructure.BackgroundServices;
 using Shared.Infrastructure.Data;
@@ -53,7 +54,8 @@ public static class ServiceCollectionExtensions
     
     public static IServiceCollection AddSharedApplication(this IServiceCollection services)
     {
-        services.AssemblyRegister(typeof(Shared.Application.Abstractions.ISender).Assembly);
+        services.AddScoped<ISender, Sender>();
+        services.AssemblyRegister(typeof(ISender).Assembly);
         return services;
     }
 }

@@ -1,6 +1,5 @@
 using Jerseys.Application.Abstractions.Jerseys;
 using Shared.Application.Abstractions;
-using Shared.Infrastructure.Abstractions;
 
 namespace Jerseys.Application.Queries.JerseysHome;
 

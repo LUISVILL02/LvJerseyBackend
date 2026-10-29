@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using Reviews.Application.Abstractions;
 using Shared.Application.Abstractions;
 using Shared.Application.Settings;
-using Shared.Infrastructure.Abstractions;
 
 namespace Jerseys.Application.Queries.JerseyDetail;
 

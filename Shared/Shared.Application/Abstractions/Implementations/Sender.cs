@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Application.Abstractions;
 
-namespace Shared.Infrastructure.Abstractions.Implementations;
+namespace Shared.Application.Abstractions.Implementations;
 
 public class Sender(IServiceProvider provider) : ISender
 {
